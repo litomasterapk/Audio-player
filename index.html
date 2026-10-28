@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#12262b">
+<title>مشغّل الصوتيات</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#12262b;--card:#1b363c;--line:#2c4f56;--tx:#eef3f1;--mut:#8fb0ab;--ac:#f0b35a;--ac2:#12262b}
+*{box-sizing:border-box;margin:0}
+body{font-family:Cairo,system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+main{max-width:640px;margin:auto;padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+h1{font-size:1.3rem;font-weight:800}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:var(--card);padding:8px 14px;border-radius:10px}
+button:hover{background:var(--line)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.pri{background:var(--ac);color:var(--ac2);font-weight:600}
+.pri:hover{background:#f6c57d}
+.now{background:var(--card);border-radius:18px;padding:22px 18px;margin-bottom:16px}
+#title{font-size:1.4rem;font-weight:800;min-height:2.2em;margin-bottom:12px}
+#seek{width:100%;accent-color:var(--ac)}
+.times{display:flex;justify-content:space-between;color:var(--mut);font-size:.85rem;direction:ltr}
+.ctl{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:12px;direction:ltr}
+.ctl button{width:46px;height:46px;border-radius:50%;padding:0;font-size:1.1rem;background:var(--bg)}
+.ctl #play{width:64px;height:64px;background:var(--ac);color:var(--ac2);font-size:1.5rem}
+.ctl .on{color:var(--ac)}
+.sub{display:flex;justify-content:center;gap:10px;margin-top:12px}
+ul{list-style:none;padding:0}
+li{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:4px 0}
+li .t{flex:1;text-align:right;background:none;padding:10px 6px;border-radius:8px}
+li.act .t{color:var(--ac);font-weight:600}
+li .d{background:none;color:var(--mut);padding:6px 10px}
+.panel{background:var(--card);border-radius:14px;padding:14px;margin-top:16px}
+.panel h2{font-size:1rem;margin-bottom:10px}
+.panel input,.panel select{width:100%;margin-bottom:8px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px}
+.row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.row span{flex:1;overflow:hidden;text-overflow:ellipsis;font-size:.9rem}
+.row select{width:auto;margin:0}
+#msg{color:var(--ac);min-height:1.4em;margin-top:8px;font-size:.9rem}
+dialog{border:0;border-radius:16px;background:var(--card);color:var(--tx);padding:20px;width:min(92vw,360px)}
+dialog::backdrop{background:#000a}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>مشغّل الصوتيات</h1>
+  <button id="acct">دخول</button>
+</header>
+
+<section class="now">
+  <div id="title">اختر مقطعًا للتشغيل</div>
+  <input id="seek" type="range" min="0" max="1000" value="0" aria-label="شريط التقديم">
+  <div class="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
+  <div class="ctl">
+    <button id="shuf" aria-label="عشوائي">⇄</button>
+    <button id="prev" aria-label="السابق">⏮</button>
+    <button id="play" aria-label="تشغيل">▶</button>
+    <button id="next" aria-label="التالي">⏭</button>
+    <button id="rep" aria-label="تكرار">⟳</button>
+  </div>
+  <div class="sub">
+    <button id="spd">السرعة 1x</button>
+  </div>
+</section>
+
+<ul id="list"></ul>
+
+<section class="panel hide" id="upPanel">
+  <h2>إضافة صوتية جديدة</h2>
+  <input id="upTitle" placeholder="اسم المقطع">
+  <input id="upFile" type="file" accept="audio/*">
+  <button class="pri" id="upBtn">رفع</button>
+</section>
+
+<section class="panel hide" id="adminPanel">
+  <h2>إدارة المستخدمين</h2>
+  <div id="users"></div>
+</section>
+
+<div id="msg" role="status"></div>
+</main>
+
+<dialog id="dlg">
+  <h2 style="margin-bottom:12px">تسجيل الدخول</h2>
+  <div class="panel" style="margin:0;padding:0;background:none">
+    <input id="em" type="email" placeholder="البريد الإلكتروني" autocomplete="email">
+    <input id="pw" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)" autocomplete="current-password">
+  </div>
+  <div class="row">
+    <button class="pri" id="login">دخول</button>
+    <button id="signup">حساب جديد</button>
+    <button id="close">إغلاق</button>
+  </div>
+  <div id="dmsg" style="color:var(--ac);font-size:.9rem"></div>
+</dialog>
+
+<audio id="au" preload="metadata"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL = "https://omtvqjfshfvhjzbulzqe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_E9RcGauLxX1MbOao1ouZzg_37avQxfY";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const $ = id => document.getElementById(id);
+const au = $("au");
+let tracks = [], idx = -1, shuffle = false, repeat = 0, user = null, role = "user";
+const speeds = [1, 1.25, 1.5, 2, 0.75]; let si = 0;
+const repLabels = ["⟳", "⟳ الكل", "⟳ 1"];
+
+function say(t) { $("msg").textContent = t; }
+function fmt(s) { if (!isFinite(s)) return "0:00"; const m = Math.floor(s / 60); return m + ":" + String(Math.floor(s % 60)).padStart(2, "0"); }
+
+/* ---------- القائمة ---------- */
+async function loadTracks() {
+  let built = [];
+  try { built = (await (await fetch("playlist.json", { cache: "no-cache" })).json()).map(t => ({ ...t, src: "built" })); } catch (e) {}
+  let db = [];
+  const { data } = await sb.from("tracks").select("*").order("created_at");
+  if (data) db = data.map(t => ({ id: t.id, title: t.title, url: t.url, by: t.uploaded_by, src: "db" }));
+  const cur = idx >= 0 ? tracks[idx] : null;
+  tracks = built.concat(db);
+  idx = cur ? tracks.findIndex(t => t.url === cur.url) : -1;
+  render();
+}
+
+function render() {
+  const ul = $("list"); ul.replaceChildren();
+  if (!tracks.length) { const li = document.createElement("li"); li.textContent = "لا توجد مقاطع بعد."; ul.append(li); return; }
+  tracks.forEach((t, i) => {
+    const li = document.createElement("li"); if (i === idx) li.className = "act";
+    const b = document.createElement("button"); b.className = "t"; b.textContent = t.title; b.onclick = () => play(i);
+    li.append(b);
+    if (t.src === "db" && user && (role === "admin" || t.by === user.id)) {
+      const d = document.createElement("button"); d.className = "d"; d.textContent = "حذف"; d.onclick = () => del(t);
+      li.append(d);
+    }
+    ul.append(li);
+  });
+}
+
+/* ---------- التشغيل ---------- */
+function play(i) {
+  if (i < 0 || i >= tracks.length) return;
+  idx = i; au.src = tracks[i].url; au.playbackRate = speeds[si];
+  au.play().catch(() => say("تعذر تشغيل المقطع"));
+  $("title").textContent = tracks[i].title; render();
+  if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: tracks[i].title, artist: "مشغّل الصوتيات" });
+}
+function next(auto) {
+  if (!tracks.length) return;
+  if (shuffle && tracks.length > 1) { let n; do { n = Math.floor(Math.random() * tracks.length); } while (n === idx); return play(n); }
+  if (idx + 1 < tracks.length) return play(idx + 1);
+  if (repeat === 1 || !auto) return play(0);
+  $("play").textContent = "▶";
+}
+function prev() { if (au.currentTime > 3) au.currentTime = 0; else play(idx > 0 ? idx - 1 : tracks.length - 1); }
+
+$("play").onclick = () => { if (idx < 0) return play(0); au.paused ? au.play() : au.pause(); };
+$("next").onclick = () => next(false);
+$("prev").onclick = prev;
+$("shuf").onclick = () => { shuffle = !shuffle; $("shuf").classList.toggle("on", shuffle); };
+$("rep").onclick = () => { repeat = (repeat + 1) % 3; $("rep").textContent = repLabels[repeat]; $("rep").classList.toggle("on", repeat > 0); };
+$("spd").onclick = () => { si = (si + 1) % speeds.length; au.playbackRate = speeds[si]; $("spd").textContent = "السرعة " + speeds[si] + "x"; };
+$("seek").oninput = () => { if (au.duration) au.currentTime = au.duration * $("seek").value / 1000; };
+au.onplay = () => $("play").textContent = "⏸";
+au.onpause = () => $("play").textContent = "▶";
+au.onloadedmetadata = () => $("dur").textContent = fmt(au.duration);
+au.ontimeupdate = () => { $("cur").textContent = fmt(au.currentTime); if (au.duration) $("seek").value = au.currentTime / au.duration * 1000; };
+au.onended = () => repeat === 2 ? play(idx) : next(true);
+if ("mediaSession" in navigator) {
+  navigator.mediaSession.setActionHandler("play", () => au.play());
+  navigator.mediaSession.setActionHandler("pause", () => au.pause());
+  navigator.mediaSession.setActionHandler("nexttrack", () => next(false));
+  navigator.mediaSession.setActionHandler("previoustrack", prev);
+}
+
+/* ---------- الحسابات ---------- */
+const dlg = $("dlg");
+$("acct").onclick = async () => { if (user) { await sb.auth.signOut(); } else { $("dmsg").textContent = ""; dlg.showModal(); } };
+$("close").onclick = () => dlg.close();
+async function auth(kind) {
+  const email = $("em").value.trim(), password = $("pw").value;
+  const { error } = kind === "in" ? await sb.auth.signInWithPassword({ email, password }) : await sb.auth.signUp({ email, password });
+  if (error) { $("dmsg").textContent = error.message; return; }
+  dlg.close();
+}
+$("login").onclick = () => auth("in");
+$("signup").onclick = () => auth("up");
+
+async function onUser(u) {
+  user = u; role = "user";
+  if (u) { const { data } = await sb.from("profiles").select("role").eq("id", u.id).single(); if (data) role = data.role; }
+  $("acct").textContent = u ? "خروج" : "دخول";
+  $("upPanel").classList.toggle("hide", !(role === "uploader" || role === "admin"));
+  $("adminPanel").classList.toggle("hide", role !== "admin");
+  if (role === "admin") loadUsers();
+  say(u ? "أهلًا " + u.email + " (" + role + ")" : "");
+  render();
+}
+sb.auth.onAuthStateChange((_e, s) => setTimeout(() => onUser(s ? s.user : null), 0));
+
+/* ---------- الرفع والحذف ---------- */
+$("upBtn").onclick = async () => {
+  const f = $("upFile").files[0], title = $("upTitle").value.trim();
+  if (!f || !title) return say("اكتب الاسم واختر ملفًا");
+  if (f.size > 50 * 1024 * 1024) return say("الملف أكبر من 50MB");
+  say("جارٍ الرفع...");
+  const ext = (f.name.split(".").pop() || "mp3").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const path = user.id + "/" + Date.now() + "." + ext;
+  const up = await sb.storage.from("audio").upload(path, f, { contentType: f.type });
+  if (up.error) return say("فشل الرفع: " + up.error.message);
+  const url = sb.storage.from("audio").getPublicUrl(path).data.publicUrl;
+  const ins = await sb.from("tracks").insert({ title, url });
+  if (ins.error) return say("فشل الحفظ: " + ins.error.message);
+  $("upTitle").value = ""; $("upFile").value = ""; say("تمت الإضافة"); loadTracks();
+};
+async function del(t) {
+  if (!confirm("حذف «" + t.title + "»؟")) return;
+  const p = decodeURIComponent(t.url.split("/object/public/audio/")[1] || "");
+  if (p) await sb.storage.from("audio").remove([p]);
+  const { error } = await sb.from("tracks").delete().eq("id", t.id);
+  if (error) return say("فشل الحذف: " + error.message);
+  loadTracks();
+}
+
+/* ---------- إدارة المستخدمين (للأدمن) ---------- */
+async function loadUsers() {
+  const { data, error } = await sb.from("profiles").select("*").order("email");
+  const box = $("users"); box.replaceChildren();
+  if (error) return say(error.message);
+  data.forEach(p => {
+    const r = document.createElement("div"); r.className = "row";
+    const s = document.createElement("span"); s.textContent = p.email;
+    const sel = document.createElement("select");
+    ["user", "uploader", "admin"].forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; sel.append(o); });
+    sel.value = p.role;
+    sel.onchange = async () => { const { error } = await sb.from("profiles").update({ role: sel.value }).eq("id", p.id); say(error ? error.message : "تم تغيير الصلاحية"); };
+    r.append(s, sel); box.append(r);
+  });
+}
+
+loadTracks();
+</script>
+</body>
+</html>
