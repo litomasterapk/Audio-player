@@ -5,37 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#12262b">
 <title>مشغّل الصوتيات</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+<link id="fontlink" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap">
 <style>
-:root{--bg:#12262b;--card:#1b363c;--line:#2c4f56;--tx:#eef3f1;--mut:#8fb0ab;--ac:#f0b35a;--ac2:#12262b}
+:root{--bg:#12262b;--card:#1b363c;--tx:#eef3f1;--ac:#f0b35a;--font:"Cairo";--fs:16px;--line:color-mix(in srgb,var(--card) 75%,#fff 25%);--mut:color-mix(in srgb,var(--tx) 60%,var(--bg))}
 *{box-sizing:border-box;margin:0}
-body{font-family:Cairo,system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+html{font-size:var(--fs)}
+body{font-family:var(--font),system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 main{max-width:640px;margin:auto;padding:16px}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-h1{font-size:1.3rem;font-weight:800}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:8px}
+h1{font-size:1.3rem;font-weight:700}
 button,select,input{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:var(--card);padding:8px 14px;border-radius:10px}
 button:hover{background:var(--line)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-.pri{background:var(--ac);color:var(--ac2);font-weight:600}
-.pri:hover{background:#f6c57d}
+.pri{background:var(--ac);color:var(--bg);font-weight:700}
+.pri:hover{background:var(--ac);filter:brightness(1.1)}
 .now{background:var(--card);border-radius:18px;padding:22px 18px;margin-bottom:16px}
-#title{font-size:1.4rem;font-weight:800;min-height:2.2em;margin-bottom:12px}
+#title{font-size:1.4rem;font-weight:700;min-height:2.2em;margin-bottom:12px}
 #seek{width:100%;accent-color:var(--ac)}
 .times{display:flex;justify-content:space-between;color:var(--mut);font-size:.85rem;direction:ltr}
 .ctl{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:12px;direction:ltr}
 .ctl button{width:46px;height:46px;border-radius:50%;padding:0;font-size:1.1rem;background:var(--bg)}
-.ctl #play{width:64px;height:64px;background:var(--ac);color:var(--ac2);font-size:1.5rem}
+.ctl #play{width:64px;height:64px;background:var(--ac);color:var(--bg);font-size:1.5rem}
 .ctl .on{color:var(--ac)}
 .sub{display:flex;justify-content:center;gap:10px;margin-top:12px}
 ul{list-style:none;padding:0}
 li{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:4px 0}
-li .t{flex:1;text-align:right;background:none;padding:10px 6px;border-radius:8px}
-li.act .t{color:var(--ac);font-weight:600}
+li .t{flex:1;text-align:start;background:none;padding:10px 6px;border-radius:8px}
+li.act .t{color:var(--ac);font-weight:700}
 li .d{background:none;color:var(--mut);padding:6px 10px}
 .panel{background:var(--card);border-radius:14px;padding:14px;margin-top:16px}
-.panel h2{font-size:1rem;margin-bottom:10px}
+.panel h2{font-size:1rem;margin:6px 0 10px}
 .panel input,.panel select{width:100%;margin-bottom:8px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px}
+.panel input[type=color]{height:42px;padding:3px}
+.lb{display:block;font-size:.8rem;color:var(--mut);margin-bottom:3px}
 .row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
 .row span{flex:1;overflow:hidden;text-overflow:ellipsis;font-size:.9rem}
 .row select{width:auto;margin:0}
@@ -48,53 +51,57 @@ dialog::backdrop{background:#000a}
 <body>
 <main>
 <header>
-  <h1>مشغّل الصوتيات</h1>
+  <h1 id="appname">مشغّل الصوتيات</h1>
   <button id="acct">دخول</button>
 </header>
 
 <section class="now">
-  <div id="title">اختر مقطعًا للتشغيل</div>
-  <input id="seek" type="range" min="0" max="1000" value="0" aria-label="شريط التقديم">
+  <div id="title"></div>
+  <input id="seek" type="range" min="0" max="1000" value="0" aria-label="seek">
   <div class="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
   <div class="ctl">
-    <button id="shuf" aria-label="عشوائي">⇄</button>
-    <button id="prev" aria-label="السابق">⏮</button>
-    <button id="play" aria-label="تشغيل">▶</button>
-    <button id="next" aria-label="التالي">⏭</button>
-    <button id="rep" aria-label="تكرار">⟳</button>
+    <button id="shuf" aria-label="shuffle">⇄</button>
+    <button id="prev" aria-label="previous">⏮</button>
+    <button id="play" aria-label="play">▶</button>
+    <button id="next" aria-label="next">⏭</button>
+    <button id="rep" aria-label="repeat">⟳</button>
   </div>
-  <div class="sub">
-    <button id="spd">السرعة 1x</button>
-  </div>
+  <div class="sub"><button id="spd"></button></div>
 </section>
 
 <ul id="list"></ul>
 
 <section class="panel hide" id="upPanel">
-  <h2>إضافة صوتية جديدة</h2>
-  <input id="upTitle" placeholder="اسم المقطع">
+  <h2 data-t="add_h"></h2>
+  <input id="upTitle" data-tp="name_ph">
   <input id="upFile" type="file" accept="audio/*">
-  <button class="pri" id="upBtn">رفع</button>
+  <button class="pri" id="upBtn" data-t="upload"></button>
 </section>
 
 <section class="panel hide" id="adminPanel">
-  <h2>إدارة المستخدمين</h2>
+  <h2 data-t="users_h"></h2>
   <div id="users"></div>
+</section>
+
+<section class="panel hide" id="setPanel">
+  <h2 data-t="set_h"></h2>
+  <div id="setBox"></div>
+  <button class="pri" id="setSave" data-t="save"></button>
 </section>
 
 <div id="msg" role="status"></div>
 </main>
 
 <dialog id="dlg">
-  <h2 style="margin-bottom:12px">تسجيل الدخول</h2>
+  <h2 style="margin-bottom:12px" data-t="login_h"></h2>
   <div class="panel" style="margin:0;padding:0;background:none">
-    <input id="em" type="email" placeholder="البريد الإلكتروني" autocomplete="email">
-    <input id="pw" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)" autocomplete="current-password">
+    <input id="em" type="email" data-tp="email_ph" autocomplete="email">
+    <input id="pw" type="password" data-tp="pw_ph" autocomplete="current-password">
   </div>
   <div class="row">
-    <button class="pri" id="login">دخول</button>
-    <button id="signup">حساب جديد</button>
-    <button id="close">إغلاق</button>
+    <button class="pri" id="login" data-t="login"></button>
+    <button id="signup" data-t="signup"></button>
+    <button id="close" data-t="close"></button>
   </div>
   <div id="dmsg" style="color:var(--ac);font-size:.9rem"></div>
 </dialog>
@@ -108,81 +115,143 @@ const SUPABASE_KEY = "sb_publishable_E9RcGauLxX1MbOao1ouZzg_37avQxfY";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = id => document.getElementById(id);
+const mk = (tag, p = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, p); e.append(...kids); return e; };
 const au = $("au");
 let tracks = [], idx = -1, shuffle = false, repeat = 0, user = null, role = "user";
 const speeds = [1, 1.25, 1.5, 2, 0.75]; let si = 0;
-const repLabels = ["⟳", "⟳ الكل", "⟳ 1"];
 
-function say(t) { $("msg").textContent = t; }
-function fmt(s) { if (!isFinite(s)) return "0:00"; const m = Math.floor(s / 60); return m + ":" + String(Math.floor(s % 60)).padStart(2, "0"); }
+/* ---------- النصوص والإعدادات ---------- */
+const I18N = {
+  ar: { login: "دخول", logout: "خروج", signup: "حساب جديد", close: "إغلاق", login_h: "تسجيل الدخول", email_ph: "البريد الإلكتروني", pw_ph: "كلمة المرور (6 أحرف على الأقل)", pick: "اختر مقطعًا للتشغيل", speed: "السرعة", no_tracks: "لا توجد مقاطع بعد.", del: "حذف", del_q: "حذف هذا المقطع؟", hello: "أهلًا", play_err: "تعذر تشغيل المقطع", add_h: "إضافة صوتية جديدة", name_ph: "اسم المقطع", upload: "رفع", fill: "اكتب الاسم واختر ملفًا", big: "الملف أكبر من 50MB", uploading: "جارٍ الرفع...", done: "تمت الإضافة", fail: "حدث خطأ", users_h: "إدارة المستخدمين", set_h: "لوحة التحكم", save: "حفظ", saved: "تم الحفظ" },
+  en: { login: "Log in", logout: "Log out", signup: "Sign up", close: "Close", login_h: "Log in", email_ph: "Email", pw_ph: "Password (min 6 characters)", pick: "Pick a track to play", speed: "Speed", no_tracks: "No tracks yet.", del: "Delete", del_q: "Delete this track?", hello: "Welcome", play_err: "Could not play this track", add_h: "Add new audio", name_ph: "Track name", upload: "Upload", fill: "Enter a name and choose a file", big: "File is larger than 50MB", uploading: "Uploading...", done: "Added", fail: "Something went wrong", users_h: "Manage users", set_h: "Control panel", save: "Save", saved: "Saved" }
+};
+const DEF = { app_name: "مشغّل الصوتيات", lang: "ar", font: "Cairo", fs: 16, accent: "#f0b35a", bg: "#12262b", card: "#1b363c", tx: "#eef3f1", texts: { ar: {}, en: {} } };
+const FONTS = ["Cairo", "Tajawal", "Almarai", "Amiri", "Noto Naskh Arabic", "Roboto"];
+const norm = d => ({ ...DEF, ...d, texts: { ar: {}, en: {}, ...(d.texts || {}) } });
+let S = DEF;
+try { const c = JSON.parse(localStorage.getItem("cfg")); if (c) S = norm(c); } catch (e) {}
+const t = k => (S.texts[S.lang] && S.texts[S.lang][k]) || I18N[S.lang][k] || k;
+
+function apply() {
+  const r = document.documentElement, st = r.style;
+  r.lang = S.lang; r.dir = S.lang === "ar" ? "rtl" : "ltr";
+  st.setProperty("--font", '"' + S.font + '"'); st.setProperty("--fs", S.fs + "px");
+  st.setProperty("--ac", S.accent); st.setProperty("--bg", S.bg); st.setProperty("--card", S.card); st.setProperty("--tx", S.tx);
+  const fl = $("fontlink"), href = "https://fonts.googleapis.com/css2?family=" + S.font.replace(/ /g, "+") + ":wght@400;700&display=swap";
+  if (fl.getAttribute("href") !== href) fl.setAttribute("href", href);
+  document.title = S.app_name; $("appname").textContent = S.app_name;
+  document.querySelectorAll("[data-t]").forEach(e => e.textContent = t(e.dataset.t));
+  document.querySelectorAll("[data-tp]").forEach(e => e.placeholder = t(e.dataset.tp));
+  $("acct").textContent = user ? t("logout") : t("login");
+  $("spd").textContent = t("speed") + " " + speeds[si] + "x";
+  if (idx < 0) $("title").textContent = t("pick");
+  render();
+}
+async function loadSettings() {
+  const { data } = await sb.from("settings").select("data").eq("id", 1).maybeSingle();
+  if (data && data.data && Object.keys(data.data).length) {
+    S = norm(data.data);
+    try { localStorage.setItem("cfg", JSON.stringify(S)); } catch (e) {}
+    apply(); if (role === "admin") buildSet();
+  }
+}
+function say(m) { $("msg").textContent = m; }
+function fmt(s) { if (!isFinite(s)) return "0:00"; return Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0"); }
+
+/* ---------- لوحة التحكم (للأدمن) ---------- */
+function buildSet() {
+  const b = $("setBox"); b.replaceChildren();
+  const add = (label, el) => b.append(mk("label", { className: "lb" }, label), el);
+  const inp = (key, type, extra = {}) => { const e = mk("input", { type, ...extra, value: S[key] }); e.oninput = () => { S[key] = type === "range" ? +e.value : e.value; apply(); }; return e; };
+  const sel = (key, opts, after) => { const e = mk("select"); opts.forEach(([v, n]) => e.append(mk("option", { value: v, textContent: n }))); e.value = S[key]; e.onchange = () => { S[key] = e.value; apply(); if (after) after(); }; return e; };
+  add("اسم التطبيق / App name", inp("app_name", "text"));
+  add("اللغة / Language", sel("lang", [["ar", "العربية"], ["en", "English"]], buildSet));
+  add("الخط / Font", sel("font", FONTS.map(f => [f, f])));
+  add("حجم الخط / Font size", inp("fs", "range", { min: 13, max: 24 }));
+  [["accent", "لون التمييز / Accent"], ["bg", "الخلفية / Background"], ["card", "البطاقات / Cards"], ["tx", "الكتابة / Text"]].forEach(([k, n]) => add(n, inp(k, "color")));
+  b.append(mk("h2", { textContent: "النصوص / Texts" }));
+  Object.keys(I18N[S.lang]).forEach(k => {
+    const e = mk("input", { value: t(k) });
+    e.oninput = () => { (S.texts[S.lang] = S.texts[S.lang] || {})[k] = e.value; apply(); };
+    add(I18N[S.lang][k], e);
+  });
+}
+$("setSave").onclick = async () => {
+  const { error } = await sb.from("settings").update({ data: S }).eq("id", 1);
+  if (!error) try { localStorage.setItem("cfg", JSON.stringify(S)); } catch (e) {}
+  say(error ? t("fail") + ": " + error.message : t("saved"));
+};
 
 /* ---------- القائمة ---------- */
 async function loadTracks() {
   let built = [];
-  try { built = (await (await fetch("playlist.json", { cache: "no-cache" })).json()).map(t => ({ ...t, src: "built" })); } catch (e) {}
+  try { built = (await (await fetch("playlist.json", { cache: "no-cache" })).json()).map(x => ({ ...x, src: "built" })); } catch (e) {}
   let db = [];
   const { data } = await sb.from("tracks").select("*").order("created_at");
-  if (data) db = data.map(t => ({ id: t.id, title: t.title, url: t.url, by: t.uploaded_by, src: "db" }));
+  if (data) db = data.map(x => ({ id: x.id, title: x.title, url: x.url, by: x.uploaded_by, src: "db" }));
   const cur = idx >= 0 ? tracks[idx] : null;
   tracks = built.concat(db);
-  idx = cur ? tracks.findIndex(t => t.url === cur.url) : -1;
+  idx = cur ? tracks.findIndex(x => x.url === cur.url) : -1;
   render();
 }
-
 function render() {
   const ul = $("list"); ul.replaceChildren();
-  if (!tracks.length) { const li = document.createElement("li"); li.textContent = "لا توجد مقاطع بعد."; ul.append(li); return; }
-  tracks.forEach((t, i) => {
-    const li = document.createElement("li"); if (i === idx) li.className = "act";
-    const b = document.createElement("button"); b.className = "t"; b.textContent = t.title; b.onclick = () => play(i);
-    li.append(b);
-    if (t.src === "db" && user && (role === "admin" || t.by === user.id)) {
-      const d = document.createElement("button"); d.className = "d"; d.textContent = "حذف"; d.onclick = () => del(t);
-      li.append(d);
-    }
+  if (!tracks.length) { ul.append(mk("li", { textContent: t("no_tracks") })); return; }
+  tracks.forEach((tr, i) => {
+    const li = mk("li", { className: i === idx ? "act" : "" });
+    li.append(mk("button", { className: "t", textContent: tr.title, onclick: () => play(i) }));
+    if (tr.src === "db" && user && (role === "admin" || tr.by === user.id)) li.append(mk("button", { className: "d", textContent: t("del"), onclick: () => del(tr) }));
     ul.append(li);
   });
 }
+
+/* ---------- إشعار التحكم (Android) ---------- */
+const MS = (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.Plugins) ? Capacitor.Plugins.MediaSession : null;
+const safe = p => { try { if (p && p.catch) p.catch(() => {}); } catch (e) {} };
+function msMeta(tr) {
+  if (MS) safe(MS.setMetadata({ title: tr.title, artist: S.app_name, album: S.app_name }));
+  else if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title, artist: S.app_name });
+}
+function msState(s) { if (MS) safe(MS.setPlaybackState({ playbackState: s })); }
+function msPos() { if (MS && au.duration) safe(MS.setPositionState({ duration: au.duration, position: au.currentTime, playbackRate: au.playbackRate })); }
+const handlers = { play: () => au.play(), pause: () => au.pause(), nexttrack: () => next(false), previoustrack: () => prev() };
+Object.entries(handlers).forEach(([a, f]) => {
+  if (MS) safe(MS.setActionHandler({ action: a }, f));
+  else if ("mediaSession" in navigator) try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {}
+});
 
 /* ---------- التشغيل ---------- */
 function play(i) {
   if (i < 0 || i >= tracks.length) return;
   idx = i; au.src = tracks[i].url; au.playbackRate = speeds[si];
-  au.play().catch(() => say("تعذر تشغيل المقطع"));
-  $("title").textContent = tracks[i].title; render();
-  if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: tracks[i].title, artist: "مشغّل الصوتيات" });
+  au.play().catch(() => say(t("play_err")));
+  $("title").textContent = tracks[i].title; render(); msMeta(tracks[i]);
 }
 function next(auto) {
   if (!tracks.length) return;
   if (shuffle && tracks.length > 1) { let n; do { n = Math.floor(Math.random() * tracks.length); } while (n === idx); return play(n); }
   if (idx + 1 < tracks.length) return play(idx + 1);
   if (repeat === 1 || !auto) return play(0);
-  $("play").textContent = "▶";
+  $("play").textContent = "▶"; msState("paused");
 }
 function prev() { if (au.currentTime > 3) au.currentTime = 0; else play(idx > 0 ? idx - 1 : tracks.length - 1); }
 
 $("play").onclick = () => { if (idx < 0) return play(0); au.paused ? au.play() : au.pause(); };
 $("next").onclick = () => next(false);
-$("prev").onclick = prev;
+$("prev").onclick = () => prev();
 $("shuf").onclick = () => { shuffle = !shuffle; $("shuf").classList.toggle("on", shuffle); };
-$("rep").onclick = () => { repeat = (repeat + 1) % 3; $("rep").textContent = repLabels[repeat]; $("rep").classList.toggle("on", repeat > 0); };
-$("spd").onclick = () => { si = (si + 1) % speeds.length; au.playbackRate = speeds[si]; $("spd").textContent = "السرعة " + speeds[si] + "x"; };
+$("rep").onclick = () => { repeat = (repeat + 1) % 3; $("rep").textContent = ["⟳", "⟳ ∞", "⟳ 1"][repeat]; $("rep").classList.toggle("on", repeat > 0); };
+$("spd").onclick = () => { si = (si + 1) % speeds.length; au.playbackRate = speeds[si]; apply(); msPos(); };
 $("seek").oninput = () => { if (au.duration) au.currentTime = au.duration * $("seek").value / 1000; };
-au.onplay = () => $("play").textContent = "⏸";
-au.onpause = () => $("play").textContent = "▶";
-au.onloadedmetadata = () => $("dur").textContent = fmt(au.duration);
+au.onplay = () => { $("play").textContent = "⏸"; msState("playing"); msPos(); };
+au.onpause = () => { $("play").textContent = "▶"; msState("paused"); msPos(); };
+au.onloadedmetadata = () => { $("dur").textContent = fmt(au.duration); msPos(); };
 au.ontimeupdate = () => { $("cur").textContent = fmt(au.currentTime); if (au.duration) $("seek").value = au.currentTime / au.duration * 1000; };
 au.onended = () => repeat === 2 ? play(idx) : next(true);
-if ("mediaSession" in navigator) {
-  navigator.mediaSession.setActionHandler("play", () => au.play());
-  navigator.mediaSession.setActionHandler("pause", () => au.pause());
-  navigator.mediaSession.setActionHandler("nexttrack", () => next(false));
-  navigator.mediaSession.setActionHandler("previoustrack", prev);
-}
 
 /* ---------- الحسابات ---------- */
 const dlg = $("dlg");
-$("acct").onclick = async () => { if (user) { await sb.auth.signOut(); } else { $("dmsg").textContent = ""; dlg.showModal(); } };
+$("acct").onclick = async () => { if (user) await sb.auth.signOut(); else { $("dmsg").textContent = ""; dlg.showModal(); } };
 $("close").onclick = () => dlg.close();
 async function auth(kind) {
   const email = $("em").value.trim(), password = $("pw").value;
@@ -196,56 +265,54 @@ $("signup").onclick = () => auth("up");
 async function onUser(u) {
   user = u; role = "user";
   if (u) { const { data } = await sb.from("profiles").select("role").eq("id", u.id).single(); if (data) role = data.role; }
-  $("acct").textContent = u ? "خروج" : "دخول";
   $("upPanel").classList.toggle("hide", !(role === "uploader" || role === "admin"));
   $("adminPanel").classList.toggle("hide", role !== "admin");
-  if (role === "admin") loadUsers();
-  say(u ? "أهلًا " + u.email + " (" + role + ")" : "");
-  render();
+  $("setPanel").classList.toggle("hide", role !== "admin");
+  if (role === "admin") { loadUsers(); buildSet(); }
+  say(u ? t("hello") + " " + u.email + " (" + role + ")" : "");
+  apply();
 }
 sb.auth.onAuthStateChange((_e, s) => setTimeout(() => onUser(s ? s.user : null), 0));
 
 /* ---------- الرفع والحذف ---------- */
 $("upBtn").onclick = async () => {
   const f = $("upFile").files[0], title = $("upTitle").value.trim();
-  if (!f || !title) return say("اكتب الاسم واختر ملفًا");
-  if (f.size > 50 * 1024 * 1024) return say("الملف أكبر من 50MB");
-  say("جارٍ الرفع...");
+  if (!f || !title) return say(t("fill"));
+  if (f.size > 50 * 1024 * 1024) return say(t("big"));
+  say(t("uploading"));
   const ext = (f.name.split(".").pop() || "mp3").toLowerCase().replace(/[^a-z0-9]/g, "");
   const path = user.id + "/" + Date.now() + "." + ext;
   const up = await sb.storage.from("audio").upload(path, f, { contentType: f.type });
-  if (up.error) return say("فشل الرفع: " + up.error.message);
+  if (up.error) return say(t("fail") + ": " + up.error.message);
   const url = sb.storage.from("audio").getPublicUrl(path).data.publicUrl;
   const ins = await sb.from("tracks").insert({ title, url });
-  if (ins.error) return say("فشل الحفظ: " + ins.error.message);
-  $("upTitle").value = ""; $("upFile").value = ""; say("تمت الإضافة"); loadTracks();
+  if (ins.error) return say(t("fail") + ": " + ins.error.message);
+  $("upTitle").value = ""; $("upFile").value = ""; say(t("done")); loadTracks();
 };
-async function del(t) {
-  if (!confirm("حذف «" + t.title + "»؟")) return;
-  const p = decodeURIComponent(t.url.split("/object/public/audio/")[1] || "");
+async function del(tr) {
+  if (!confirm(t("del_q") + " " + tr.title)) return;
+  const p = decodeURIComponent(tr.url.split("/object/public/audio/")[1] || "");
   if (p) await sb.storage.from("audio").remove([p]);
-  const { error } = await sb.from("tracks").delete().eq("id", t.id);
-  if (error) return say("فشل الحذف: " + error.message);
+  const { error } = await sb.from("tracks").delete().eq("id", tr.id);
+  if (error) return say(t("fail") + ": " + error.message);
   loadTracks();
 }
 
-/* ---------- إدارة المستخدمين (للأدمن) ---------- */
+/* ---------- إدارة المستخدمين ---------- */
 async function loadUsers() {
   const { data, error } = await sb.from("profiles").select("*").order("email");
   const box = $("users"); box.replaceChildren();
   if (error) return say(error.message);
   data.forEach(p => {
-    const r = document.createElement("div"); r.className = "row";
-    const s = document.createElement("span"); s.textContent = p.email;
-    const sel = document.createElement("select");
-    ["user", "uploader", "admin"].forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; sel.append(o); });
+    const sel = mk("select");
+    ["user", "uploader", "admin"].forEach(v => sel.append(mk("option", { value: v, textContent: v })));
     sel.value = p.role;
-    sel.onchange = async () => { const { error } = await sb.from("profiles").update({ role: sel.value }).eq("id", p.id); say(error ? error.message : "تم تغيير الصلاحية"); };
-    r.append(s, sel); box.append(r);
+    sel.onchange = async () => { const { error } = await sb.from("profiles").update({ role: sel.value }).eq("id", p.id); say(error ? error.message : t("saved")); };
+    box.append(mk("div", { className: "row" }, mk("span", { textContent: p.email }), sel));
   });
 }
 
-loadTracks();
+apply(); loadSettings(); loadTracks();
 </script>
 </body>
 </html>
