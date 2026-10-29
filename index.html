@@ -206,7 +206,8 @@ function render() {
 }
 
 /* ---------- إشعار التحكم (Android) ---------- */
-const MS = (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.Plugins) ? Capacitor.Plugins.MediaSession : null;
+const USE_NATIVE_NOTIFICATION = false; // غيّرها إلى true لتجربة إشعار الأندرويد
+const MS = (USE_NATIVE_NOTIFICATION && window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.Plugins) ? Capacitor.Plugins.MediaSession : null;
 const safe = p => { try { if (p && p.catch) p.catch(() => {}); } catch (e) {} };
 function msMeta(tr) {
   if (MS) safe(MS.setMetadata({ title: tr.title, artist: S.app_name, album: S.app_name }));
