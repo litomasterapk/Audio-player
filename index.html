@@ -45,6 +45,12 @@ li .d{background:none;color:var(--mut);padding:6px 10px}
 #msg{color:var(--ac);min-height:1.4em;margin-top:8px;font-size:.9rem}
 dialog{border:0;border-radius:16px;background:var(--card);color:var(--tx);padding:20px;width:min(92vw,360px)}
 dialog::backdrop{background:#000a}
+.tabs{display:flex;gap:8px;margin:14px 0 8px}
+.tabs button{flex:1}
+.tabs .on{background:var(--ac);color:var(--bg);font-weight:700}
+.fld{width:100%;padding:9px;margin-bottom:8px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+.panel input[type=checkbox]{width:auto}
+#qName{margin:10px 0}
 .hide{display:none!important}
 </style>
 </head>
@@ -69,13 +75,25 @@ dialog::backdrop{background:#000a}
   <div class="sub"><button id="spd"></button></div>
 </section>
 
+<nav class="tabs"><button id="tabLib" class="on" data-t="tab_lib"></button><button id="tabQ" data-t="tab_q"></button></nav>
 <ul id="list"></ul>
+<section id="quran" class="hide">
+  <div id="qHome"><input id="qSearch" class="fld" data-tp="q_search"><ul id="qList"></ul></div>
+  <div id="qRec" class="hide">
+    <div class="row"><button id="qBack" data-t="back"></button><button class="pri" id="qAll" data-t="play_all"></button></div>
+    <h2 id="qName"></h2>
+    <select id="qMoshaf" class="fld"></select>
+    <ul id="qSur"></ul>
+  </div>
+</section>
 
 <section class="panel hide" id="upPanel">
   <h2 data-t="add_h"></h2>
   <input id="upTitle" data-tp="name_ph">
   <input id="upFile" type="file" accept="audio/*">
   <button class="pri" id="upBtn" data-t="upload"></button>
+  <input id="upUrl" data-tp="url_ph" dir="ltr" style="margin-top:12px">
+  <button class="pri" id="urlBtn" data-t="add_url"></button>
 </section>
 
 <section class="panel hide" id="adminPanel">
@@ -122,10 +140,10 @@ const speeds = [1, 1.25, 1.5, 2, 0.75]; let si = 0;
 
 /* ---------- النصوص والإعدادات ---------- */
 const I18N = {
-  ar: { login: "دخول", logout: "خروج", signup: "حساب جديد", close: "إغلاق", login_h: "تسجيل الدخول", email_ph: "البريد الإلكتروني", pw_ph: "كلمة المرور (6 أحرف على الأقل)", pick: "اختر مقطعًا للتشغيل", speed: "السرعة", no_tracks: "لا توجد مقاطع بعد.", del: "حذف", del_q: "حذف هذا المقطع؟", hello: "أهلًا", play_err: "تعذر تشغيل المقطع", add_h: "إضافة صوتية جديدة", name_ph: "اسم المقطع", upload: "رفع", fill: "اكتب الاسم واختر ملفًا", big: "الملف أكبر من 50MB", uploading: "جارٍ الرفع...", done: "تمت الإضافة", fail: "حدث خطأ", users_h: "إدارة المستخدمين", set_h: "لوحة التحكم", save: "حفظ", saved: "تم الحفظ" },
-  en: { login: "Log in", logout: "Log out", signup: "Sign up", close: "Close", login_h: "Log in", email_ph: "Email", pw_ph: "Password (min 6 characters)", pick: "Pick a track to play", speed: "Speed", no_tracks: "No tracks yet.", del: "Delete", del_q: "Delete this track?", hello: "Welcome", play_err: "Could not play this track", add_h: "Add new audio", name_ph: "Track name", upload: "Upload", fill: "Enter a name and choose a file", big: "File is larger than 50MB", uploading: "Uploading...", done: "Added", fail: "Something went wrong", users_h: "Manage users", set_h: "Control panel", save: "Save", saved: "Saved" }
+  ar: { login: "دخول", logout: "خروج", signup: "حساب جديد", close: "إغلاق", login_h: "تسجيل الدخول", email_ph: "البريد الإلكتروني", pw_ph: "كلمة المرور (6 أحرف على الأقل)", pick: "اختر مقطعًا للتشغيل", speed: "السرعة", no_tracks: "لا توجد مقاطع بعد.", del: "حذف", del_q: "حذف هذا المقطع؟", hello: "أهلًا", play_err: "تعذر تشغيل المقطع", add_h: "إضافة صوتية جديدة", name_ph: "اسم المقطع", upload: "رفع", fill: "اكتب الاسم واختر ملفًا", big: "الملف أكبر من 50MB", uploading: "جارٍ الرفع...", done: "تمت الإضافة", fail: "حدث خطأ", users_h: "إدارة المستخدمين", set_h: "لوحة التحكم", save: "حفظ", saved: "تم الحفظ", tab_lib: "المكتبة", tab_q: "القرآن", q_search: "ابحث عن شيخ", back: "رجوع", play_all: "تشغيل الكل", url_ph: "رابط مباشر لملف صوتي (https)", add_url: "إضافة بالرابط", loading: "جارٍ التحميل...", surah: "سورة", url_bad: "اكتب الاسم ورابطًا يبدأ بـ https", q_fail: "تعذر تحميل بيانات القرآن" },
+  en: { login: "Log in", logout: "Log out", signup: "Sign up", close: "Close", login_h: "Log in", email_ph: "Email", pw_ph: "Password (min 6 characters)", pick: "Pick a track to play", speed: "Speed", no_tracks: "No tracks yet.", del: "Delete", del_q: "Delete this track?", hello: "Welcome", play_err: "Could not play this track", add_h: "Add new audio", name_ph: "Track name", upload: "Upload", fill: "Enter a name and choose a file", big: "File is larger than 50MB", uploading: "Uploading...", done: "Added", fail: "Something went wrong", users_h: "Manage users", set_h: "Control panel", save: "Save", saved: "Saved", tab_lib: "Library", tab_q: "Quran", q_search: "Search reciter", back: "Back", play_all: "Play all", url_ph: "Direct audio link (https)", add_url: "Add by link", loading: "Loading...", surah: "Surah", url_bad: "Enter a name and an https link", q_fail: "Could not load Quran data" }
 };
-const DEF = { app_name: "مشغّل الصوتيات", lang: "ar", font: "Cairo", fs: 16, accent: "#f0b35a", bg: "#12262b", card: "#1b363c", tx: "#eef3f1", texts: { ar: {}, en: {} } };
+const DEF = { app_name: "مشغّل الصوتيات", lang: "ar", font: "Cairo", fs: 16, accent: "#f0b35a", bg: "#12262b", card: "#1b363c", tx: "#eef3f1", native: false, texts: { ar: {}, en: {} } };
 const FONTS = ["Cairo", "Tajawal", "Almarai", "Amiri", "Noto Naskh Arabic", "Roboto"];
 const norm = d => ({ ...DEF, ...d, texts: { ar: {}, en: {}, ...(d.texts || {}) } });
 let S = DEF;
@@ -169,6 +187,8 @@ function buildSet() {
   add("الخط / Font", sel("font", FONTS.map(f => [f, f])));
   add("حجم الخط / Font size", inp("fs", "range", { min: 13, max: 24 }));
   [["accent", "لون التمييز / Accent"], ["bg", "الخلفية / Background"], ["card", "البطاقات / Cards"], ["tx", "الكتابة / Text"]].forEach(([k, n]) => add(n, inp(k, "color")));
+  const cb = mk("input", { type: "checkbox", checked: !!S.native }); cb.onchange = () => { S.native = cb.checked; };
+  add("إشعار أندرويد (تجريبي) / Android notification (experimental)", cb);
   b.append(mk("h2", { textContent: "النصوص / Texts" }));
   Object.keys(I18N[S.lang]).forEach(k => {
     const e = mk("input", { value: t(k) });
@@ -183,46 +203,54 @@ $("setSave").onclick = async () => {
 };
 
 /* ---------- القائمة ---------- */
+let lib = tracks;
 async function loadTracks() {
   let built = [];
   try { built = (await (await fetch("playlist.json", { cache: "no-cache" })).json()).map(x => ({ ...x, src: "built" })); } catch (e) {}
   let db = [];
   const { data } = await sb.from("tracks").select("*").order("created_at");
   if (data) db = data.map(x => ({ id: x.id, title: x.title, url: x.url, by: x.uploaded_by, src: "db" }));
-  const cur = idx >= 0 ? tracks[idx] : null;
-  tracks = built.concat(db);
-  idx = cur ? tracks.findIndex(x => x.url === cur.url) : -1;
+  const now = idx >= 0 ? tracks[idx] : null, was = tracks === lib;
+  lib = built.concat(db);
+  if (was) { tracks = lib; idx = now ? tracks.findIndex(x => x.url === now.url) : -1; }
   render();
 }
 function render() {
   const ul = $("list"); ul.replaceChildren();
-  if (!tracks.length) { ul.append(mk("li", { textContent: t("no_tracks") })); return; }
-  tracks.forEach((tr, i) => {
-    const li = mk("li", { className: i === idx ? "act" : "" });
-    li.append(mk("button", { className: "t", textContent: tr.title, onclick: () => play(i) }));
+  if (!lib.length) ul.append(mk("li", { textContent: t("no_tracks") }));
+  lib.forEach((tr, i) => {
+    const li = mk("li", { className: tracks === lib && i === idx ? "act" : "" });
+    li.append(mk("button", { className: "t", textContent: tr.title, onclick: () => play(i, lib) }));
     if (tr.src === "db" && user && (role === "admin" || tr.by === user.id)) li.append(mk("button", { className: "d", textContent: t("del"), onclick: () => del(tr) }));
     ul.append(li);
   });
+  const u = idx >= 0 && tracks[idx] ? tracks[idx].url : "";
+  document.querySelectorAll("#qSur li").forEach(li => li.classList.toggle("act", li.dataset.url === u));
 }
 
 /* ---------- إشعار التحكم (Android) ---------- */
-const USE_NATIVE_NOTIFICATION = false; // غيّرها إلى true لتجربة إشعار الأندرويد
-const MS = (USE_NATIVE_NOTIFICATION && window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.Plugins) ? Capacitor.Plugins.MediaSession : null;
+const isNative = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
 const safe = p => { try { if (p && p.catch) p.catch(() => {}); } catch (e) {} };
-function msMeta(tr) {
-  if (MS) safe(MS.setMetadata({ title: tr.title, artist: S.app_name, album: S.app_name }));
-  else if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title, artist: S.app_name });
-}
-function msState(s) { if (MS) safe(MS.setPlaybackState({ playbackState: s })); }
-function msPos() { if (MS && au.duration) safe(MS.setPositionState({ duration: au.duration, position: au.currentTime, playbackRate: au.playbackRate })); }
 const handlers = { play: () => au.play(), pause: () => au.pause(), nexttrack: () => next(false), previoustrack: () => prev() };
-Object.entries(handlers).forEach(([a, f]) => {
-  if (MS) safe(MS.setActionHandler({ action: a }, f));
-  else if ("mediaSession" in navigator) try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {}
-});
+let msInit = false;
+function ms() {
+  if (!(isNative && S.native && Capacitor.Plugins && Capacitor.Plugins.MediaSession)) return null;
+  const m = Capacitor.Plugins.MediaSession;
+  if (!msInit) { msInit = true; Object.entries(handlers).forEach(([a, f]) => safe(m.setActionHandler({ action: a }, f))); }
+  return m;
+}
+if (!isNative && "mediaSession" in navigator) Object.entries(handlers).forEach(([a, f]) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {} });
+function msMeta(tr) {
+  const m = ms();
+  if (m) safe(m.setMetadata({ title: tr.title, artist: S.app_name, album: S.app_name }));
+  else if (!isNative && "mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title, artist: S.app_name });
+}
+function msState(st) { const m = ms(); if (m) safe(m.setPlaybackState({ playbackState: st })); }
+function msPos() { const m = ms(); if (m && au.duration) safe(m.setPositionState({ duration: au.duration, position: au.currentTime, playbackRate: au.playbackRate })); }
 
 /* ---------- التشغيل ---------- */
-function play(i) {
+function play(i, list) {
+  if (list) tracks = list;
   if (i < 0 || i >= tracks.length) return;
   idx = i; au.src = tracks[i].url; au.playbackRate = speeds[si];
   au.play().catch(() => say(t("play_err")));
@@ -249,6 +277,62 @@ au.onpause = () => { $("play").textContent = "▶"; msState("paused"); msPos(); 
 au.onloadedmetadata = () => { $("dur").textContent = fmt(au.duration); msPos(); };
 au.ontimeupdate = () => { $("cur").textContent = fmt(au.currentTime); if (au.duration) $("seek").value = au.currentTime / au.duration * 1000; };
 au.onended = () => repeat === 2 ? play(idx) : next(true);
+
+/* ---------- القرآن (mp3quran.net) ---------- */
+const API = "https://www.mp3quran.net/api/v3/";
+let reciters = null, suwar = null, qLang = "", curRec = null, surTracks = [];
+const lg = () => S.lang === "ar" ? "ar" : "eng";
+function tab(q) {
+  $("tabLib").classList.toggle("on", !q); $("tabQ").classList.toggle("on", q);
+  $("list").classList.toggle("hide", q); $("quran").classList.toggle("hide", !q);
+  if (q) loadQuran();
+}
+$("tabLib").onclick = () => tab(false);
+$("tabQ").onclick = () => tab(true);
+async function loadQuran() {
+  if (reciters && qLang === lg()) return;
+  $("qList").replaceChildren(mk("li", { textContent: t("loading") }));
+  try {
+    const [r, s2] = await Promise.all([fetch(API + "reciters?language=" + lg()).then(x => x.json()), fetch(API + "suwar?language=" + lg()).then(x => x.json())]);
+    reciters = r.reciters; suwar = s2.suwar; qLang = lg(); drawReciters();
+  } catch (e) { $("qList").replaceChildren(mk("li", { textContent: t("q_fail") })); }
+}
+function drawReciters() {
+  const q = $("qSearch").value.trim().toLowerCase(), ul = $("qList"); ul.replaceChildren();
+  reciters.filter(r => r.name.toLowerCase().includes(q)).forEach(r => ul.append(mk("li", {}, mk("button", { className: "t", textContent: r.name, onclick: () => openReciter(r) }))));
+}
+$("qSearch").oninput = () => { if (reciters) drawReciters(); };
+function openReciter(r) {
+  curRec = r; $("qHome").classList.add("hide"); $("qRec").classList.remove("hide"); $("qName").textContent = r.name;
+  const sel = $("qMoshaf"); sel.replaceChildren();
+  r.moshaf.forEach((m, i) => sel.append(mk("option", { value: i, textContent: m.name })));
+  sel.classList.toggle("hide", r.moshaf.length < 2);
+  drawSur();
+}
+function drawSur() {
+  const m = curRec.moshaf[$("qMoshaf").value || 0], ul = $("qSur"); ul.replaceChildren();
+  surTracks = m.surah_list.split(",").map(Number).map(id => {
+    const s3 = suwar.find(x => x.id === id);
+    return { title: t("surah") + " " + (s3 ? s3.name : id) + " - " + curRec.name, name: s3 ? s3.name : String(id), url: m.server + String(id).padStart(3, "0") + ".mp3", src: "q" };
+  });
+  surTracks.forEach((tr, i) => {
+    const li = mk("li", {}, mk("button", { className: "t", textContent: t("surah") + " " + tr.name, onclick: () => play(i, surTracks) }));
+    li.dataset.url = tr.url; ul.append(li);
+  });
+  render();
+}
+$("qMoshaf").onchange = drawSur;
+$("qBack").onclick = () => { $("qRec").classList.add("hide"); $("qHome").classList.remove("hide"); };
+$("qAll").onclick = () => play(0, surTracks);
+
+/* ---------- إضافة بالرابط ---------- */
+$("urlBtn").onclick = async () => {
+  const title = $("upTitle").value.trim(), url = $("upUrl").value.trim();
+  if (!title || !/^https:\/\//i.test(url)) return say(t("url_bad"));
+  const { error } = await sb.from("tracks").insert({ title, url });
+  if (error) return say(t("fail") + ": " + error.message);
+  $("upTitle").value = ""; $("upUrl").value = ""; say(t("done")); loadTracks();
+};
 
 /* ---------- الحسابات ---------- */
 const dlg = $("dlg");
