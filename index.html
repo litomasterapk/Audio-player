@@ -51,6 +51,10 @@ dialog::backdrop{background:#000a}
 .fld{width:100%;padding:9px;margin-bottom:8px;background:var(--card);border:1px solid var(--line);border-radius:8px}
 .panel input[type=checkbox]{width:auto}
 #qName{margin:10px 0}
+#banner{background:var(--card);border-radius:14px;padding:14px;margin-bottom:14px;text-align:center;white-space:pre-line;line-height:1.9;color:var(--ac)}
+.panel textarea{width:100%;margin-bottom:8px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px;font:inherit;color:inherit}
+.bar{height:10px;background:var(--bg);border-radius:6px;overflow:hidden;margin:6px 0}
+.bar i{display:block;height:100%;width:0;background:var(--ac)}
 .hide{display:none!important}
 </style>
 </head>
@@ -60,6 +64,7 @@ dialog::backdrop{background:#000a}
   <h1 id="appname">مشغّل الصوتيات</h1>
   <button id="acct">دخول</button>
 </header>
+<div id="banner" class="hide"></div>
 
 <section class="now">
   <div id="title"></div>
@@ -81,6 +86,7 @@ dialog::backdrop{background:#000a}
   <div id="qHome"><input id="qSearch" class="fld" data-tp="q_search"><ul id="qList"></ul></div>
   <div id="qRec" class="hide">
     <div class="row"><button id="qBack" data-t="back"></button><button class="pri" id="qAll" data-t="play_all"></button></div>
+    <button id="qAddAll" class="hide" data-t="add_all" style="margin-top:8px"></button>
     <h2 id="qName"></h2>
     <select id="qMoshaf" class="fld"></select>
     <ul id="qSur"></ul>
@@ -97,6 +103,9 @@ dialog::backdrop{background:#000a}
 </section>
 
 <section class="panel hide" id="adminPanel">
+  <h2 data-t="st_h"></h2>
+  <div class="bar"><i id="stFill"></i></div>
+  <div id="stTxt" style="font-size:.9rem;margin-bottom:12px"></div>
   <h2 data-t="users_h"></h2>
   <div id="users"></div>
 </section>
@@ -140,10 +149,10 @@ const speeds = [1, 1.25, 1.5, 2, 0.75]; let si = 0;
 
 /* ---------- النصوص والإعدادات ---------- */
 const I18N = {
-  ar: { login: "دخول", logout: "خروج", signup: "حساب جديد", close: "إغلاق", login_h: "تسجيل الدخول", email_ph: "البريد الإلكتروني", pw_ph: "كلمة المرور (6 أحرف على الأقل)", pick: "اختر مقطعًا للتشغيل", speed: "السرعة", no_tracks: "لا توجد مقاطع بعد.", del: "حذف", del_q: "حذف هذا المقطع؟", hello: "أهلًا", play_err: "تعذر تشغيل المقطع", add_h: "إضافة صوتية جديدة", name_ph: "اسم المقطع", upload: "رفع", fill: "اكتب الاسم واختر ملفًا", big: "الملف أكبر من 50MB", uploading: "جارٍ الرفع...", done: "تمت الإضافة", fail: "حدث خطأ", users_h: "إدارة المستخدمين", set_h: "لوحة التحكم", save: "حفظ", saved: "تم الحفظ", tab_lib: "المكتبة", tab_q: "القرآن", q_search: "ابحث عن شيخ", back: "رجوع", play_all: "تشغيل الكل", url_ph: "رابط مباشر لملف صوتي (https)", add_url: "إضافة بالرابط", loading: "جارٍ التحميل...", surah: "سورة", url_bad: "اكتب الاسم ورابطًا يبدأ بـ https", q_fail: "تعذر تحميل بيانات القرآن" },
-  en: { login: "Log in", logout: "Log out", signup: "Sign up", close: "Close", login_h: "Log in", email_ph: "Email", pw_ph: "Password (min 6 characters)", pick: "Pick a track to play", speed: "Speed", no_tracks: "No tracks yet.", del: "Delete", del_q: "Delete this track?", hello: "Welcome", play_err: "Could not play this track", add_h: "Add new audio", name_ph: "Track name", upload: "Upload", fill: "Enter a name and choose a file", big: "File is larger than 50MB", uploading: "Uploading...", done: "Added", fail: "Something went wrong", users_h: "Manage users", set_h: "Control panel", save: "Save", saved: "Saved", tab_lib: "Library", tab_q: "Quran", q_search: "Search reciter", back: "Back", play_all: "Play all", url_ph: "Direct audio link (https)", add_url: "Add by link", loading: "Loading...", surah: "Surah", url_bad: "Enter a name and an https link", q_fail: "Could not load Quran data" }
+  ar: { login: "دخول", logout: "خروج", signup: "حساب جديد", close: "إغلاق", login_h: "تسجيل الدخول", email_ph: "البريد الإلكتروني", pw_ph: "كلمة المرور (6 أحرف على الأقل)", pick: "اختر مقطعًا للتشغيل", speed: "السرعة", no_tracks: "لا توجد مقاطع بعد.", del: "حذف", del_q: "حذف هذا المقطع؟", hello: "أهلًا", play_err: "تعذر تشغيل المقطع", add_h: "إضافة صوتية جديدة", name_ph: "اسم المقطع", upload: "رفع", fill: "اكتب الاسم واختر ملفًا", big: "الملف أكبر من 50MB", uploading: "جارٍ الرفع...", done: "تمت الإضافة", fail: "حدث خطأ", users_h: "إدارة المستخدمين", set_h: "لوحة التحكم", save: "حفظ", saved: "تم الحفظ", tab_lib: "المكتبة", tab_q: "القرآن", q_search: "ابحث عن شيخ", back: "رجوع", play_all: "تشغيل الكل", url_ph: "رابط مباشر لملف صوتي (https)", add_url: "إضافة بالرابط", loading: "جارٍ التحميل...", surah: "سورة", url_bad: "اكتب الاسم ورابطًا يبدأ بـ https", q_fail: "تعذر تحميل بيانات القرآن", add_all: "إضافة كل السور للمكتبة", add_one: "＋ مكتبة", exists: "موجودة في المكتبة بالفعل", st_h: "المساحة المستخدمة", left: "المتبقي" },
+  en: { login: "Log in", logout: "Log out", signup: "Sign up", close: "Close", login_h: "Log in", email_ph: "Email", pw_ph: "Password (min 6 characters)", pick: "Pick a track to play", speed: "Speed", no_tracks: "No tracks yet.", del: "Delete", del_q: "Delete this track?", hello: "Welcome", play_err: "Could not play this track", add_h: "Add new audio", name_ph: "Track name", upload: "Upload", fill: "Enter a name and choose a file", big: "File is larger than 50MB", uploading: "Uploading...", done: "Added", fail: "Something went wrong", users_h: "Manage users", set_h: "Control panel", save: "Save", saved: "Saved", tab_lib: "Library", tab_q: "Quran", q_search: "Search reciter", back: "Back", play_all: "Play all", url_ph: "Direct audio link (https)", add_url: "Add by link", loading: "Loading...", surah: "Surah", url_bad: "Enter a name and an https link", q_fail: "Could not load Quran data", add_all: "Add all surahs to library", add_one: "+ Library", exists: "Already in the library", st_h: "Storage used", left: "left" }
 };
-const DEF = { app_name: "مشغّل الصوتيات", lang: "ar", font: "Cairo", fs: 16, accent: "#f0b35a", bg: "#12262b", card: "#1b363c", tx: "#eef3f1", native: false, texts: { ar: {}, en: {} } };
+const DEF = { app_name: "مشغّل الصوتيات", lang: "ar", font: "Cairo", fs: 16, accent: "#f0b35a", bg: "#12262b", card: "#1b363c", tx: "#eef3f1", notif: true, limit_mb: 1024, banner: "", texts: { ar: {}, en: {} } };
 const FONTS = ["Cairo", "Tajawal", "Almarai", "Amiri", "Noto Naskh Arabic", "Roboto"];
 const norm = d => ({ ...DEF, ...d, texts: { ar: {}, en: {}, ...(d.texts || {}) } });
 let S = DEF;
@@ -158,6 +167,7 @@ function apply() {
   const fl = $("fontlink"), href = "https://fonts.googleapis.com/css2?family=" + S.font.replace(/ /g, "+") + ":wght@400;700&display=swap";
   if (fl.getAttribute("href") !== href) fl.setAttribute("href", href);
   document.title = S.app_name; $("appname").textContent = S.app_name;
+  const bn = $("banner"); bn.textContent = S.banner || ""; bn.classList.toggle("hide", !(S.banner || "").trim());
   document.querySelectorAll("[data-t]").forEach(e => e.textContent = t(e.dataset.t));
   document.querySelectorAll("[data-tp]").forEach(e => e.placeholder = t(e.dataset.tp));
   $("acct").textContent = user ? t("logout") : t("login");
@@ -183,12 +193,15 @@ function buildSet() {
   const inp = (key, type, extra = {}) => { const e = mk("input", { type, ...extra, value: S[key] }); e.oninput = () => { S[key] = type === "range" ? +e.value : e.value; apply(); }; return e; };
   const sel = (key, opts, after) => { const e = mk("select"); opts.forEach(([v, n]) => e.append(mk("option", { value: v, textContent: n }))); e.value = S[key]; e.onchange = () => { S[key] = e.value; apply(); if (after) after(); }; return e; };
   add("اسم التطبيق / App name", inp("app_name", "text"));
+  const ta = mk("textarea", { rows: 4, value: S.banner || "" }); ta.oninput = () => { S.banner = ta.value; apply(); };
+  add("كلمة أو دعاء في الشاشة الرئيسية / Message on home screen", ta);
   add("اللغة / Language", sel("lang", [["ar", "العربية"], ["en", "English"]], buildSet));
   add("الخط / Font", sel("font", FONTS.map(f => [f, f])));
   add("حجم الخط / Font size", inp("fs", "range", { min: 13, max: 24 }));
   [["accent", "لون التمييز / Accent"], ["bg", "الخلفية / Background"], ["card", "البطاقات / Cards"], ["tx", "الكتابة / Text"]].forEach(([k, n]) => add(n, inp(k, "color")));
-  const cb = mk("input", { type: "checkbox", checked: !!S.native }); cb.onchange = () => { S.native = cb.checked; };
-  add("إشعار أندرويد (تجريبي) / Android notification (experimental)", cb);
+  const cb = mk("input", { type: "checkbox", checked: S.notif !== false }); cb.onchange = () => { S.notif = cb.checked; };
+  add("إشعار التحكم في أندرويد / Android controls notification", cb);
+  add("حد المساحة (MB) / Storage limit (MB)", inp("limit_mb", "number", { min: 1 }));
   b.append(mk("h2", { textContent: "النصوص / Texts" }));
   Object.keys(I18N[S.lang]).forEach(k => {
     const e = mk("input", { value: t(k) });
@@ -200,6 +213,7 @@ $("setSave").onclick = async () => {
   const { error } = await sb.from("settings").update({ data: S }).eq("id", 1);
   if (!error) try { localStorage.setItem("cfg", JSON.stringify(S)); } catch (e) {}
   say(error ? t("fail") + ": " + error.message : t("saved"));
+  loadStorage();
 };
 
 /* ---------- القائمة ---------- */
@@ -214,6 +228,7 @@ async function loadTracks() {
   lib = built.concat(db);
   if (was) { tracks = lib; idx = now ? tracks.findIndex(x => x.url === now.url) : -1; }
   render();
+  if (role === "admin") loadStorage();
 }
 function render() {
   const ul = $("list"); ul.replaceChildren();
@@ -231,22 +246,25 @@ function render() {
 /* ---------- إشعار التحكم (Android) ---------- */
 const isNative = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
 const safe = p => { try { if (p && p.catch) p.catch(() => {}); } catch (e) {} };
-const handlers = { play: () => au.play(), pause: () => au.pause(), nexttrack: () => next(false), previoustrack: () => prev() };
-let msInit = false;
-function ms() {
-  if (!(isNative && S.native && Capacitor.Plugins && Capacitor.Plugins.MediaSession)) return null;
-  const m = Capacitor.Plugins.MediaSession;
-  if (!msInit) { msInit = true; Object.entries(handlers).forEach(([a, f]) => safe(m.setActionHandler({ action: a }, f))); }
-  return m;
+const handlers = { play: () => au.play(), pause: () => au.pause(), next: () => next(false), prev: () => prev() };
+let MN = null;
+function mn() {
+  if (!isNative || S.notif === false) return null;
+  if (!MN) {
+    try {
+      MN = (Capacitor.Plugins && Capacitor.Plugins.MediaNotif) || Capacitor.registerPlugin("MediaNotif");
+      safe(MN.addListener("action", e => { const f = handlers[e && e.action]; if (f) f(); }));
+    } catch (e) { MN = null; }
+  }
+  return MN;
 }
-if (!isNative && "mediaSession" in navigator) Object.entries(handlers).forEach(([a, f]) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {} });
-function msMeta(tr) {
-  const m = ms();
-  if (m) safe(m.setMetadata({ title: tr.title, artist: S.app_name, album: S.app_name }));
-  else if (!isNative && "mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title, artist: S.app_name });
+if (!isNative && "mediaSession" in navigator) {
+  const wh = { play: handlers.play, pause: handlers.pause, nexttrack: handlers.next, previoustrack: handlers.prev };
+  Object.entries(wh).forEach(([a, f]) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {} });
 }
-function msState(st) { const m = ms(); if (m) safe(m.setPlaybackState({ playbackState: st })); }
-function msPos() { const m = ms(); if (m && au.duration) safe(m.setPositionState({ duration: au.duration, position: au.currentTime, playbackRate: au.playbackRate })); }
+function msMeta(tr) { if (!isNative && "mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title, artist: S.app_name }); }
+function msState(st) { const m = mn(), tr = tracks[idx]; if (m && tr) safe(m.show({ title: tr.title, playing: st === "playing", app: S.app_name })); }
+function msPos() {}
 
 /* ---------- التشغيل ---------- */
 function play(i, list) {
@@ -317,13 +335,35 @@ function drawSur() {
   });
   surTracks.forEach((tr, i) => {
     const li = mk("li", {}, mk("button", { className: "t", textContent: t("surah") + " " + tr.name, onclick: () => play(i, surTracks) }));
+    if (canAdd()) li.append(mk("button", { className: "d", textContent: t("add_one"), onclick: () => addToLib([tr]) }));
     li.dataset.url = tr.url; ul.append(li);
   });
+  $("qAddAll").classList.toggle("hide", !canAdd());
   render();
 }
 $("qMoshaf").onchange = drawSur;
 $("qBack").onclick = () => { $("qRec").classList.add("hide"); $("qHome").classList.remove("hide"); };
 $("qAll").onclick = () => play(0, surTracks);
+
+const canAdd = () => role === "uploader" || role === "admin";
+async function addToLib(list) {
+  const have = new Set(lib.map(x => x.url));
+  const fresh = list.filter(x => !have.has(x.url)).map(x => ({ title: x.title, url: x.url }));
+  if (!fresh.length) return say(t("exists"));
+  const { error } = await sb.from("tracks").insert(fresh);
+  if (error) return say(t("fail") + ": " + error.message);
+  say(t("done") + " (" + fresh.length + ")"); loadTracks();
+}
+$("qAddAll").onclick = () => addToLib(surTracks);
+
+/* ---------- المساحة (للأدمن) ---------- */
+async function loadStorage() {
+  const { data, error } = await sb.rpc("storage_used");
+  if (error || data == null) { $("stTxt").textContent = error ? error.message : ""; return; }
+  const used = Number(data) / 1048576, lim = Number(S.limit_mb) || 1024;
+  $("stFill").style.width = Math.min(100, used / lim * 100) + "%";
+  $("stTxt").textContent = used.toFixed(1) + " MB / " + lim + " MB - " + t("left") + " " + Math.max(0, lim - used).toFixed(1) + " MB";
+}
 
 /* ---------- إضافة بالرابط ---------- */
 $("urlBtn").onclick = async () => {
@@ -353,7 +393,8 @@ async function onUser(u) {
   $("upPanel").classList.toggle("hide", !(role === "uploader" || role === "admin"));
   $("adminPanel").classList.toggle("hide", role !== "admin");
   $("setPanel").classList.toggle("hide", role !== "admin");
-  if (role === "admin") { loadUsers(); buildSet(); }
+  if (role === "admin") { loadUsers(); buildSet(); loadStorage(); }
+  if (curRec) drawSur();
   say(u ? t("hello") + " " + u.email + " (" + role + ")" : "");
   apply();
 }
