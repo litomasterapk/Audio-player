@@ -24,8 +24,11 @@ jobs:
           if [ -d audio ]; then cp -r audio www/; fi
           npm init -y
           npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 --legacy-peer-deps
-          npm install @capgo/capacitor-media-session@7 --legacy-peer-deps || echo "plugin skipped"
           npx cap add android
+          PKG=android/app/src/main/java/com/litomasterapk/audioplayer
+          cp MediaNotifPlugin.java MainActivity.java $PKG/
+          sed -i 's#<application#<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <application#' android/app/src/main/AndroidManifest.xml
+          printf "\ndependencies {\n    implementation 'androidx.media:media:1.7.0'\n}\n" >> android/app/build.gradle
           npx cap sync android
           cd android && ./gradlew assembleDebug
       - name: Publish
